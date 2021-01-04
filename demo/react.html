@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Hello World</title>
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style type="text/css">
+        #app::before {
+            content: attr(data-test);
+        }
+        .userImage {
+            color: red;
+        }
+        .dialog-title {
+            font-size: 16px;
+        }
+        .dialog-body {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<div id="app" data-test="red"></div>
+<div id="toggle"></div>
+<div id="form"></div>
+<div id="calculator"></div>
+<div id="dialog"></div>
+<div id="theme-button"></div>
+<div id="error-boundary"></div>
+<div id="comment-list"></div>
+<div id="item-list"></div>
+<div id="portals"></div>
+<script type="text/babel">
+
+  class ZoeCpnt extends React.Component {
+    render() {
+      return <div>hello, {this.props.name}</div>
+    }
+  }
+  function Avatar(prop) {
+    return <div>
+      <img src={prop.url} />
+      <span>{prop.name}</span>
+    </div>
+  }
+  function UserContent(prop) {
+    return <div>
+      <h1>{prop.title}</h1>
+      <p>{prop.content}</p>
+    </div>
+  }
+  function Comment(prop) {
+    return (
+      <div>
+        <div className='userImage'>
+          <Avatar name={prop.name} url={prop.url} />
+        </div>
+        <div className='userContent'>
+          <UserContent title={prop.title} content={prop.content} />
+        </div>
+      </div>
+    )
+  }
+  ReactDOM.render(
+    <Comment name='zoe' url='http://192.168.2.112/uploads/-/system/user/avatar/56/avatar.png' title='this is a porifilo' content="this content is about a human's life, watch out!!!" />,
+    document.getElementById('root')
+  )
+  /*************************************************************/
+
+  class Clock extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        count: 1,
+        a: false,
+        b: false
+      }
+    }
+    render() {
+      return (
+        <div>
+          <div>this is a time</div>
+          <div>previous is: {this.state.count}</div>
+          <button onClick={this.handleClick}>click</button>
+          <div>a:{this.state.a.toString()}</div>
+          <div>b:{this.state.b.toString()}</div>
+        </div>
+      )
+    }
+    componentDidMount() {
+      this.timerId = setInterval(() => this.tick(), 1000)
+    }
+    componentWillUnmount() {
+      clearInterval(this.timerId)
+    }
+    tick() {
+      this.setState((state) => ({
+        count: state.count + 1
+      }))
+    }
+    handleClick = () => {
+      console.log('Clock', this)
+      this.setState({a: true})
+      this.setState({b: true})
+    }
+  }
+
+  function NumberList(props) {
+    const nums = props.numbers
+    const listItems = nums.map(item => <li key={item}>{item}</li>)
+    return <ul>{listItems}</ul>
+  }
+
+  ReactDOM.render(
+    <Clock />,
+    document.getElementById('app')
+  )
+  /**************************************************************************/
+  class Toggle extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        isToggle: false
+      }
+      this.handleClick = this.handleClick.bind(this)
+    }
+    render() {
+      const {showSomething, showTag} = this.props
+      const arr = [1, 2, 3, 4, 5]
+      const itemList = arr.map(item => {
+        return <li key={item}>第{item}项</li>
+      })
+      return (
+        <div>
+          <div onClick={this.handleClick.bind(this, 'id001')}>handleClick: {this.state.isToggle ? 'off' : 'on'}</div>
+          <div onClick={this.closureFoo}>closureFoo: {this.state.isToggle ? 'off' : 'on'}</div>
+          <div>{showSomething}</div>
+          {showTag ? <span>this is a tag to show</span> : <span>this is a tag to hide</span>}
+          <ul>{itemList}</ul>
+          <NumberList numbers={this.props.numbers} />
+        </div>
+      )
+    }
+    handleClick(id) {
+      console.log('handleClick', this, id)
+      this.setState(state => ({isToggle: !state.isToggle}))
+    }
+    closureFoo = () => {
+      console.log('closureFoo', this)
+      this.setState(state => ({isToggle: !state.isToggle}))
+    }
+  }
+  ReactDOM.render(
+    <Toggle showSomething='哈哈显示Something' showTag={false} numbers={[1, 2, 3, 5]} />,
+    document.getElementById('toggle')
+  )
+  /*******************************************************************/
+  class Form extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {name: '', color: '', inputRef: ''}
+      this.handleChange = this.handleChange.bind(this)
+      this.handleSubmit = this.handleSubmit.bind(this)
+      this.inputRef = React.createRef()
+      this.fileRef = React.createRef()
+    }
+    handleChange(e) {
+      const target = e.target
+      const val = target.value
+      const name = target.name
+      setTimeout(() => {
+        console.log('handleChange', this.state)
+      }, 500)
+    }
+    handleSubmit(e) {
+      e.preventDefault()
+      this.setState({inputRef: this.inputRef.current.value})
+      console.log('handleSubmit', this.inputRef.current.value, this.fileRef.current.files)
+      setTimeout(() => {
+        console.log('handleSubmit timeout',this.state)
+      }, 500)
+    }
+    render() {
+      return (
+        <form onSubmit={this.handleSubmit}>
+          <label>name: <input name="name" value={this.state.name} onChange={this.handleChange} /></label>
+          <label>color: <input name="color" value={this.state.color} onChange={this.handleChange} /></label>
+          <label>refInput: <input defaultValue="ohahah i am a input reference" type="text" ref={this.inputRef} /></label>
+          <label>file: <input type="file" ref={this.fileRef} /></label>
+          <input type="submit" value="submit" />
+        </form>
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <Form />,
+    document.getElementById('form')
+  )
+  /***************************************************************************/
+  function BoilingVerdict(props) {
+    if(props.celsius >= 100) {
+      return <p>the water would boil</p>
+    }
+    return <p>the water would not boil</p>
+  }
+
+  function toCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5 / 9
+  }
+  function toFahrenheit(celsius) {
+    return (celsius * 9 / 5) + 32
+  }
+
+  const scaleNames = {
+    c: 'Celsius',
+    f: 'Fahrenheit'
+  }
+
+  class TemperatureInput extends React.Component {
+    constructor(props) {
+      super(props)
+      this.handleChange = this.handleChange.bind(this)
+    }
+    handleChange(e) {
+      const value = e.target.value
+      const temperature = this.props.scale === 'c' ? value : toCelsius(value)
+      this.props.onTemperatureChange(temperature)
+    }
+
+    render() {
+      const {temperature, scale} = this.props
+      return (
+        <fieldset>
+          <legend>input temperature in {scaleNames[scale]}</legend>
+          <input value={ scale === 'c' ? temperature : toFahrenheit(temperature)} onChange={this.handleChange} />
+        </fieldset>
+      )
+    }
+
+  }
+
+  class Calculator extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {temperature: ''}
+      this.handleChange = this.handleChange.bind(this)
+    }
+    handleChange(val) {
+      this.setState({temperature: val})
+    }
+    render() {
+      const {temperature} = this.state
+      return (
+        <div>
+          <TemperatureInput scale="c" temperature={temperature} onTemperatureChange={this.handleChange} />
+          <TemperatureInput scale="f" temperature={temperature} onTemperatureChange={this.handleChange} />
+          <BoilingVerdict celsius={temperature} />
+        </div>
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <Calculator />,
+    document.getElementById("calculator")
+  )
+
+  /****************************************************************************/
+
+  function FancyBorder(props) {
+    return (
+      <div style={{color: 'red'}}>
+        {props.children}
+      </div>
+    )
+  }
+
+  function SplitPane(props) {
+    return (
+      <div className="split-pane">
+        <div className="split-pane-left">{props.left}</div>
+        <div className="split-pane-right">{props.right}</div>
+      </div>
+    )
+  }
+
+  function WelcomeDialog() {
+    return (
+      <>
+        <FancyBorder>
+          <h1 className="dialog-title">
+            this is a dialog title
+          </h1>
+          <p className="dialog-body">
+            this is a dialog body
+          </p>
+          <SplitPane
+            left={
+              <div>this is left split pane</div>
+            }
+            right={
+              <div>this is right split pane</div>
+            }
+          />
+        </FancyBorder>
+        <div>
+          <label htmlFor="nameInput">name:</label>
+          <input id="nameInput" type="text" name="name" />
+        </div>
+      </>
+    )
+  }
+
+  ReactDOM.render(
+    <WelcomeDialog />,
+    document.getElementById('dialog')
+  )
+
+  /*************************************************************************************/
+
+  const ThemeContext = React.createContext('dark')
+
+  class ThemeButton extends React.Component {
+    constructor(props) {
+      super(props)
+    }
+    static contextType = ThemeContext
+    render() {
+      const color = {
+        'light': 'blue',
+        'warn': 'red',
+        'dark': 'black'
+      }
+      console.log(ThemeContext)
+      return (
+        <button style={{color: color[this.context]}}>{this.props.children}</button>
+      )
+    }
+  }
+
+  class Toolbar extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {theme: 'light'}
+    }
+    handleClick(theme) {
+      this.setState({
+        theme: theme
+      })
+    }
+    render() {
+      return (
+        <div>
+          <ThemeContext.Provider value={this.state.theme}>
+            <ThemeButton>哈哈</ThemeButton>
+          </ThemeContext.Provider>
+          <div>
+            <button onClick={this.handleClick.bind(this, 'light')}>light</button>
+            <button onClick={this.handleClick.bind(this, 'warn')}>warn</button>
+            <button onClick={this.handleClick.bind(this, 'dark')}>dark</button>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <ThemeContext.Provider value="light">
+      <Toolbar />
+    </ThemeContext.Provider>,
+    document.getElementById('theme-button')
+  )
+
+  /*********************************************************************************************/
+
+  class ErrorBoundary extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = { hasError: false }
+    }
+    static getDerivedStateFromError(error) {
+      return { hasError: true }
+    }
+    componentDidCatch(error, errorInfo) {
+      console.log(error, errorInfo)
+    }
+    render() {
+      if(this.state.hasError) {
+        return <h1>something went wrong</h1>
+      }
+      return this.props.children
+    }
+  }
+
+  class MyWidget extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {name: 'zoe'}
+    }
+    render() {
+      return (
+        <div>{this.state.name}</div>
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <ErrorBoundary>
+      <MyWidget />
+    </ErrorBoundary>,
+    document.getElementById('error-boundary')
+  )
+
+  /**********************************************************************************************************/
+  let DataSource = {
+    getComments() {
+      return [
+        {name: 'lily', id: 1},
+        {name: 'cici', id: 12}
+      ]
+    },
+    getBlogs() {
+      return [
+        {label: 'english', id: '233'},
+        {label: 'chinese', id: '122'}
+      ]
+    }
+  }
+
+  function ListItem(props) {
+    return (
+      <div>{props.comment.name}</div>
+    )
+  }
+
+  function BlogItem(props) {
+    return (
+      <div>
+        <div>i am blog item</div>
+        <div>{props.blog.label}</div>
+      </div>
+    )
+  }
+
+  class CommentList extends React.Component {
+    constructor(props) {
+      super(props)
+      this.handleChange = this.handleChange.bind(this)
+      this.state = {
+        comments: DataSource.getComments()
+      }
+    }
+    handleChange() {
+      console.log('handleChange comment list')
+    }
+    render() {
+      return (
+        <div>
+          {this.state.comments.map(comment => (
+            <ListItem comment={comment} key={comment.id} />
+          ))}
+        </div>
+      )
+    }
+  }
+
+  class BlogPost extends React.Component {
+    constructor(props) {
+      super(props)
+      this.handleChange = this.handleChange.bind(this)
+      this.state = {
+        blogs: DataSource.getBlogs()
+      }
+    }
+    handleChange() {
+      console.log('handleChange blog post')
+    }
+    render() {
+      return (
+        <div>
+          {this.state.blogs.map(blog => (
+            <BlogItem blog={blog} key={blog.id} />
+          ))}
+        </div>
+      )
+    }
+  }
+
+  function CommentHOC(WrappedComponent, selectData) {
+    return class extends React.Component {
+      constructor(props) {
+        super(props)
+        this.handleChange = this.handleChange.bind(this)
+        this.state = {
+          data: selectData(DataSource, props)
+        }
+      }
+      handleChange() {
+        console.log('hahha CommentHOC')
+      }
+      render() {
+        return (
+          <WrappedComponent data={this.state.data} {...this.props} />
+        )
+      }
+    }
+  }
+
+  const CommentSubHOC = CommentHOC(
+    function(props) {
+      return (
+        <div style={{color: props.color}}>
+          {props.data.map(comment => (
+            <ListItem comment={comment} key={comment.id} />
+          ))}
+        </div>
+      )
+    },
+    (DataSource, props) => DataSource.getComments()
+  )
+  const BlogSubHOC = CommentHOC(
+    function(props) {
+      return (
+        <div>
+          {props.data.map(blog => (
+            <BlogItem blog={blog} key={blog.id} />
+          ))}
+        </div>
+      )
+    },
+    (DataSource) => DataSource.getBlogs()
+  )
+
+  ReactDOM.render(
+    <div>
+      <CommentList />
+      <BlogPost />
+      <div>below is HOC component</div>
+      <CommentSubHOC color="red" />
+      <BlogSubHOC />
+    </div>,
+    document.getElementById('comment-list')
+  )
+
+  /*************************************************************************************************/
+
+  class ItemList extends React.Component {
+    constructor(props) {
+      super(props)
+    }
+
+    render() {
+      return [
+        <li>first</li>,
+        <li>{ this.props.message.length > 0 && <span>second</span>}</li>,
+        <li>{null}</li>,
+      ]
+    }
+  }
+
+  ReactDOM.render(
+    <ItemList message={[]} />,
+    document.getElementById('item-list')
+  )
+
+  /***************************************************************************************************/
+
+  class Modal extends React.Component {
+    constructor(props) {
+      super(props)
+      this.el = document.createElement('div')
+    }
+    render() {
+      return ReactDOM.createPortal(
+        this.props.children,
+        document.body
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <Tooltip>hi i am portals</Tooltip>,
+    document.getElementById("portals")
+  )
+
+  /***************************************************************************************************/
+
+
+</script>
+<script type="text/javascript">
+  const dom = document.getElementById('app')
+
+  const obj = {
+    name: 'zoe',
+    unboundFoo: function(age, color) {
+      console.log(this.name, age, color)
+    }
+  }
+  const unboundFoo = obj.unboundFoo
+  const boundFoo = unboundFoo.bind(obj, 12)
+  boundFoo(32)
+
+  var id = 'GLOBAL';
+  var obj1 = {
+    id: 'OBJ',
+    a: function(){
+      console.log(this.id);
+    },
+    b: () => {
+      console.log(this.id);
+    }
+  }
+
+  function Stu() {
+    this.name = 'hah'
+  }
+  var name = 'window name'
+  Stu.prototype.sayHi = () => {
+    console.log(this.name)
+  }
+  Stu.prototype.sayBye = function() {
+    console.log(this.name)
+  }
+
+  function globalFoo() {
+    console.log(this)
+  }
+
+  const student = new Stu()
+
+</script>
+</body>
+</html>
